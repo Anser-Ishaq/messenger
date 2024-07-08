@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1084566191832",
+    "project_id": "messanger-ui",
+    "storage_bucket": "messanger-ui.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1084566191832:android:b0a10d6591cad287b061ad",
+        "android_client_info": {
+          "package_name": "com.example.messanger_ui"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAu-irZlQwTaZ24eiOVHph5o6RxgnTvLjk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
