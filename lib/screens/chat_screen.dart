@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:messanger_ui/components/header.dart';
 import 'package:messanger_ui/components/searchbox.dart';
 import 'package:messanger_ui/components/video_trimmer.dart';
+import 'package:messanger_ui/constans/const.dart';
 import 'package:messanger_ui/model/usermodel.dart';
 import 'package:messanger_ui/screens/message_screen.dart';
 import 'package:messanger_ui/screens/story_screen.dart';
@@ -72,7 +73,16 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const Searchbox(),
           _storyAndOnlineBox(),
-          _chatsBox(),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _chatBoxAI(),
+                  _chatsBox(),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -191,155 +201,203 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _chatsBox() {
-    return Expanded(
-      child: StreamBuilder(
-        stream: _databaseService.getFriendUsers(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text("Unable to load data."),
-            );
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: SizedBox());
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
-              child: Text("No friends found."),
-            );
-          }
-          final users = snapshot.data!.docs;
-          return SlidableAutoCloseBehavior(
-            closeWhenTapped: true,
-            closeWhenOpened: true,
-            child: ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                UserModel user = users[index].data();
-                return Slidable(
-                  key: Key(user.uid!),
-                  endActionPane: ActionPane(
-                    motion: const ScrollMotion(),
-                    children: [
-                      CustomSlidableAction(
-                        padding: const EdgeInsets.all(0),
-                        onPressed: (context) {},
-                        child: const CustomContainer(
-                          leftM: 0,
-                          rightM: 0,
-                          child: Icon(Icons.menu_rounded),
-                        ),
-                      ),
-                      CustomSlidableAction(
-                        padding: const EdgeInsets.all(0),
-                        onPressed: (context) {},
-                        child: const CustomContainer(
-                          leftM: 0,
-                          rightM: 0,
-                          child: Icon(Icons.notifications),
-                        ),
-                      ),
-                      CustomSlidableAction(
-                        padding: const EdgeInsets.all(0),
-                        onPressed: (context) {},
-                        child: const CustomContainer(
-                          leftM: 0,
-                          rightM: 0,
-                          color: Colors.red,
-                          child: Icon(
-                            Icons.delete,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  startActionPane: ActionPane(
-                    motion: const ScrollMotion(),
-                    children: [
-                      CustomSlidableAction(
-                        padding: const EdgeInsets.all(0),
-                        onPressed: (context) {},
-                        child: const CustomContainer(
-                          leftM: 0,
-                          rightM: 0,
-                          child: Icon(Icons.camera_alt_rounded),
-                        ),
-                      ),
-                      CustomSlidableAction(
-                        padding: const EdgeInsets.all(0),
-                        onPressed: (context) {},
-                        child: const CustomContainer(
-                          leftM: 0,
-                          rightM: 0,
-                          child: Icon(Icons.phone_rounded),
-                        ),
-                      ),
-                      CustomSlidableAction(
-                        padding: const EdgeInsets.all(0),
-                        onPressed: (context) {},
-                        child: const CustomContainer(
-                          leftM: 0,
-                          rightM: 0,
-                          child: Icon(Icons.videocam_rounded),
-                        ),
-                      ),
-                    ],
-                  ),
-                  child: ListTile(
-                    dense: false,
-                    minLeadingWidth: 60,
-                    minVerticalPadding: 10,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 12,
-                    ),
-                    leading: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0x0A000000),
-                      ),
-                      child: ClipOval(
-                        child: Image.network(
-                          user.pfpURL!,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      user.username!,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    trailing: const Text('12:00 PM'),
-                    onTap: () async {
-                      final chatExists = await _databaseService.checkChatExists(
-                          _authService.user!.uid, user.uid!);
-                      if (!chatExists) {
-                        await _databaseService.createNewChat(
-                            _authService.user!.uid, user.uid!);
-                      }
-                      _navigationService.push(
-                        MaterialPageRoute(
-                          builder: (context) => MessageScreen(
-                            chatUser: user,
-                            currentUser: _databaseService.userModel,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-          );
-        },
+  Widget _chatBoxAI() {
+    return ListTile(
+      dense: false,
+      minLeadingWidth: 60,
+      minVerticalPadding: 10,
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 10,
+        horizontal: 12,
       ),
+      leading: Container(
+        width: 60,
+        height: 60,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Color(0x0A000000),
+        ),
+        child: ClipOval(
+          child: Image.network(
+            'https://firebasestorage.googleapis.com/v0/b/messanger-ui.appspot.com/o/users%2Fpfps%2Fperson.png?alt=media&token=43a3821c-8970-4e93-b96c-29f48040d3b5',
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      title: const Text(
+        'AI Chat',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      trailing: const Text('12:00 PM'),
+      onTap: () async {
+        final chatExists = await _databaseService.checkChatExists(
+            _authService.user!.uid, chatAIAPIKey);
+        if (!chatExists) {
+          await _databaseService.createNewChat(
+              _authService.user!.uid, chatAIAPIKey);
+        }
+        _navigationService.push(
+          MaterialPageRoute(
+            builder: (context) => MessageScreen(
+              chatUser: UserModel(uid: chatAIAPIKey,
+              username: 'AI Chat', pfpURL: 'https://firebasestorage.googleapis.com/v0/b/messanger-ui.appspot.com/o/users%2Fpfps%2Fperson.png?alt=media&token=43a3821c-8970-4e93-b96c-29f48040d3b5'),
+              currentUser: _databaseService.userModel,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _chatsBox() {
+    return StreamBuilder(
+      stream: _databaseService.getFriendUsers(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text("Unable to load data."),
+          );
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: SizedBox());
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Text("No friends found."),
+          );
+        }
+        final users = snapshot.data!.docs;
+        return SlidableAutoCloseBehavior(
+          closeWhenTapped: true,
+          closeWhenOpened: true,
+          child: Column(
+            children: users.map((userDoc) {
+              UserModel user = userDoc.data();
+              return Slidable(
+                key: Key(user.uid!),
+                endActionPane: ActionPane(
+                  motion: const ScrollMotion(),
+                  children: [
+                    CustomSlidableAction(
+                      padding: const EdgeInsets.all(0),
+                      onPressed: (context) {},
+                      child: const CustomContainer(
+                        leftM: 0,
+                        rightM: 0,
+                        child: Icon(Icons.menu_rounded),
+                      ),
+                    ),
+                    CustomSlidableAction(
+                      padding: const EdgeInsets.all(0),
+                      onPressed: (context) {},
+                      child: const CustomContainer(
+                        leftM: 0,
+                        rightM: 0,
+                        child: Icon(Icons.notifications),
+                      ),
+                    ),
+                    CustomSlidableAction(
+                      padding: const EdgeInsets.all(0),
+                      onPressed: (context) {},
+                      child: const CustomContainer(
+                        leftM: 0,
+                        rightM: 0,
+                        color: Colors.red,
+                        child: Icon(
+                          Icons.delete,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                startActionPane: ActionPane(
+                  motion: const ScrollMotion(),
+                  children: [
+                    CustomSlidableAction(
+                      padding: const EdgeInsets.all(0),
+                      onPressed: (context) {},
+                      child: const CustomContainer(
+                        leftM: 0,
+                        rightM: 0,
+                        child: Icon(Icons.camera_alt_rounded),
+                      ),
+                    ),
+                    CustomSlidableAction(
+                      padding: const EdgeInsets.all(0),
+                      onPressed: (context) {},
+                      child: const CustomContainer(
+                        leftM: 0,
+                        rightM: 0,
+                        child: Icon(Icons.phone_rounded),
+                      ),
+                    ),
+                    CustomSlidableAction(
+                      padding: const EdgeInsets.all(0),
+                      onPressed: (context) {},
+                      child: const CustomContainer(
+                        leftM: 0,
+                        rightM: 0,
+                        child: Icon(Icons.videocam_rounded),
+                      ),
+                    ),
+                  ],
+                ),
+                child: ListTile(
+                  dense: false,
+                  minLeadingWidth: 60,
+                  minVerticalPadding: 10,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 10,
+                    horizontal: 12,
+                  ),
+                  leading: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0x0A000000),
+                    ),
+                    child: ClipOval(
+                      child: Image.network(
+                        user.pfpURL!,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    user.username!,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  trailing: const Text('12:00 PM'),
+                  onTap: () async {
+                    final chatExists = await _databaseService.checkChatExists(
+                        _authService.user!.uid, user.uid!);
+                    if (!chatExists) {
+                      await _databaseService.createNewChat(
+                          _authService.user!.uid, user.uid!);
+                    }
+                    _navigationService.push(
+                      MaterialPageRoute(
+                        builder: (context) => MessageScreen(
+                          chatUser: user,
+                          currentUser: _databaseService.userModel,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:messanger_ui/constans/const.dart';
 import 'package:messanger_ui/model/chat.dart';
 import 'package:messanger_ui/model/message.dart';
 import 'package:messanger_ui/model/usermodel.dart';
@@ -11,6 +13,7 @@ import 'package:messanger_ui/services/database_service.dart';
 import 'package:messanger_ui/services/navigation_service.dart';
 import 'package:messanger_ui/widgets/custom_back_button.dart';
 import 'package:messanger_ui/widgets/custom_profile_view.dart';
+import 'package:http/http.dart' as http;
 
 class MessageScreen extends StatefulWidget {
   const MessageScreen(
@@ -57,6 +60,53 @@ class _MessageScreenState extends State<MessageScreen> {
     super.dispose();
   }
 
+  Future<void> _sendAIMessage() async {
+    final messageText = _messageController.text.toString();
+    if (messageText.isNotEmpty) {
+      final message = Message(
+        senderID: widget.currentUser.uid!,
+        content: messageText,
+        messageType: MessageType.text,
+        sentAt: Timestamp.now(),
+      );
+      _databaseService.sendChatMessage(
+        widget.currentUser.uid!,
+        widget.chatUser.uid!,
+        message,
+      );
+      _messageController.clear();
+
+      Map<String, dynamic> request = {
+      "prompt": {
+        "messages": [
+          {
+            "content": messageText,
+          }
+        ]
+      },
+      "temperature": 0.25,
+      "candidateCount": 1,
+      "topP": 1,
+      "topK": 1
+    };
+
+      final response = await http.post(chatAIuri, body: jsonEncode(request));
+
+      final message1 = Message(
+        senderID: widget.chatUser.uid!,
+        content: json.decode(response.body)["candidates"][0]["content"],
+        messageType: MessageType.text,
+        sentAt: Timestamp.now(),
+      );
+
+      _databaseService.sendChatMessage(
+        widget.currentUser.uid!,
+        widget.chatUser.uid!,
+        message1,
+      );
+    }
+  }
+
   void _sendMessage() {
     final messageText = _messageController.text.toString();
     if (messageText.isNotEmpty) {
@@ -87,7 +137,7 @@ class _MessageScreenState extends State<MessageScreen> {
           onTap: () => FocusScope.of(context).unfocus(),
           child: Column(
             children: [
-              Flexible(
+              Expanded(
                 flex: 8,
                 child: SingleChildScrollView(
                   reverse: true,
@@ -316,6 +366,11 @@ class _MessageScreenState extends State<MessageScreen> {
           );
         }
         Chat chat = data;
+        if (chat.messages == null) {
+          return const Center(
+            child: Text("No messages found."),
+          );
+        }
         List<Message> messages = _generateChatMessagesList(chat.messages!);
         return Column(
           children: messages.map((message) => _messageItem(message)).toList(),
@@ -501,7 +556,8 @@ class _MessageScreenState extends State<MessageScreen> {
   Widget _sendButton() {
     return IconButton(
       padding: const EdgeInsets.all(10),
-      onPressed: _sendMessage,
+      onPressed:
+          widget.chatUser.uid == chatAIAPIKey ? _sendAIMessage : _sendMessage,
       icon: const Icon(
         Icons.thumb_up_off_alt_rounded,
         color: Color(0xFF0584FE),
