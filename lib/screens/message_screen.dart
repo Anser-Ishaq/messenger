@@ -519,9 +519,6 @@ class _MessageScreenState extends State<MessageScreen> {
           Expanded(
             child: TextFormField(
               controller: _messageController,
-              textCapitalization: TextCapitalization.sentences,
-              textInputAction: TextInputAction.newline,
-              keyboardType: TextInputType.multiline,
               cursorRadius: const Radius.circular(2),
               cursorWidth: 1.5,
               expands: true,

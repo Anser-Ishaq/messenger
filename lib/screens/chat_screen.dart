@@ -6,7 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:messanger_ui/components/header.dart';
 import 'package:messanger_ui/components/searchbox.dart';
 import 'package:messanger_ui/components/video_trimmer.dart';
-import 'package:messanger_ui/constans/const.dart';
+import 'package:messanger_ui/model/chat.dart';
 import 'package:messanger_ui/model/usermodel.dart';
 import 'package:messanger_ui/screens/message_screen.dart';
 import 'package:messanger_ui/screens/story_screen.dart';
@@ -14,6 +14,7 @@ import 'package:messanger_ui/services/auth_service.dart';
 import 'package:messanger_ui/services/database_service.dart';
 import 'package:messanger_ui/services/navigation_service.dart';
 import 'package:messanger_ui/users.dart';
+import 'package:messanger_ui/utils.dart';
 import 'package:messanger_ui/widgets/custom_container.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -77,7 +78,6 @@ class _ChatScreenState extends State<ChatScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _chatBoxAI(),
                   _chatsBox(),
                 ],
               ),
@@ -201,57 +201,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _chatBoxAI() {
-    return ListTile(
-      dense: false,
-      minLeadingWidth: 60,
-      minVerticalPadding: 10,
-      contentPadding: const EdgeInsets.symmetric(
-        vertical: 10,
-        horizontal: 12,
-      ),
-      leading: Container(
-        width: 60,
-        height: 60,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Color(0x0A000000),
-        ),
-        child: ClipOval(
-          child: Image.network(
-            'https://firebasestorage.googleapis.com/v0/b/messanger-ui.appspot.com/o/users%2Fpfps%2Fperson.png?alt=media&token=43a3821c-8970-4e93-b96c-29f48040d3b5',
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-      title: const Text(
-        'AI Chat',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      trailing: const Text('12:00 PM'),
-      onTap: () async {
-        final chatExists = await _databaseService.checkChatExists(
-            _authService.user!.uid, chatAIAPIKey);
-        if (!chatExists) {
-          await _databaseService.createNewChat(
-              _authService.user!.uid, chatAIAPIKey);
-        }
-        _navigationService.push(
-          MaterialPageRoute(
-            builder: (context) => MessageScreen(
-              chatUser: UserModel(uid: chatAIAPIKey,
-              username: 'AI Chat', pfpURL: 'https://firebasestorage.googleapis.com/v0/b/messanger-ui.appspot.com/o/users%2Fpfps%2Fperson.png?alt=media&token=43a3821c-8970-4e93-b96c-29f48040d3b5'),
-              currentUser: _databaseService.userModel,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _chatsBox() {
     return StreamBuilder(
       stream: _databaseService.getFriendUsers(),
@@ -276,123 +225,178 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             children: users.map((userDoc) {
               UserModel user = userDoc.data();
-              return Slidable(
-                key: Key(user.uid!),
-                endActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  children: [
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.menu_rounded),
-                      ),
-                    ),
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.notifications),
-                      ),
-                    ),
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        color: Colors.red,
-                        child: Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                startActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  children: [
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.camera_alt_rounded),
-                      ),
-                    ),
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.phone_rounded),
-                      ),
-                    ),
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.videocam_rounded),
-                      ),
-                    ),
-                  ],
-                ),
-                child: ListTile(
-                  dense: false,
-                  minLeadingWidth: 60,
-                  minVerticalPadding: 10,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 10,
-                    horizontal: 12,
-                  ),
-                  leading: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0x0A000000),
-                    ),
-                    child: ClipOval(
-                      child: Image.network(
-                        user.pfpURL!,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    user.username!,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  trailing: const Text('12:00 PM'),
-                  onTap: () async {
-                    final chatExists = await _databaseService.checkChatExists(
-                        _authService.user!.uid, user.uid!);
-                    if (!chatExists) {
-                      await _databaseService.createNewChat(
-                          _authService.user!.uid, user.uid!);
-                    }
-                    _navigationService.push(
-                      MaterialPageRoute(
-                        builder: (context) => MessageScreen(
-                          chatUser: user,
-                          currentUser: _databaseService.userModel,
-                        ),
-                      ),
+              return StreamBuilder(
+                stream: _databaseService.getChatData(
+                    user.uid!, _authService.user!.uid),
+                builder: (context, chatSnapshot) {
+                  if (chatSnapshot.hasError) {
+                    return const Center(
+                      child: Text("Unable to load chat data."),
                     );
-                  },
-                ),
+                  }
+                  if (chatSnapshot.connectionState == ConnectionState.waiting) {
+                    return const ListTile(
+                      title: Text("Loading..."),
+                    );
+                  }
+                  if (!chatSnapshot.hasData || !chatSnapshot.data!.exists) {
+                    return const ListTile(
+                      title: Text("No chat data found."),
+                    );
+                  }
+                  Chat chatData = chatSnapshot.data!.data()!;
+                  String lastMessage = chatData.messages!.last.content!;
+                  String dateTime =
+                      formatDateTime(chatData.messages!.last.sentAt!);
+                  return Slidable(
+                    key: Key(user.uid!),
+                    endActionPane: ActionPane(
+                      motion: const ScrollMotion(),
+                      children: [
+                        CustomSlidableAction(
+                          padding: const EdgeInsets.all(0),
+                          onPressed: (context) {},
+                          child: const CustomContainer(
+                            leftM: 0,
+                            rightM: 0,
+                            child: Icon(Icons.menu_rounded),
+                          ),
+                        ),
+                        CustomSlidableAction(
+                          padding: const EdgeInsets.all(0),
+                          onPressed: (context) {},
+                          child: const CustomContainer(
+                            leftM: 0,
+                            rightM: 0,
+                            child: Icon(Icons.notifications),
+                          ),
+                        ),
+                        CustomSlidableAction(
+                          padding: const EdgeInsets.all(0),
+                          onPressed: (context) {},
+                          child: const CustomContainer(
+                            leftM: 0,
+                            rightM: 0,
+                            color: Colors.red,
+                            child: Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    startActionPane: ActionPane(
+                      motion: const ScrollMotion(),
+                      children: [
+                        CustomSlidableAction(
+                          padding: const EdgeInsets.all(0),
+                          onPressed: (context) {},
+                          child: const CustomContainer(
+                            leftM: 0,
+                            rightM: 0,
+                            child: Icon(Icons.camera_alt_rounded),
+                          ),
+                        ),
+                        CustomSlidableAction(
+                          padding: const EdgeInsets.all(0),
+                          onPressed: (context) {},
+                          child: const CustomContainer(
+                            leftM: 0,
+                            rightM: 0,
+                            child: Icon(Icons.phone_rounded),
+                          ),
+                        ),
+                        CustomSlidableAction(
+                          padding: const EdgeInsets.all(0),
+                          onPressed: (context) {},
+                          child: const CustomContainer(
+                            leftM: 0,
+                            rightM: 0,
+                            child: Icon(Icons.videocam_rounded),
+                          ),
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      dense: false,
+                      minLeadingWidth: 60,
+                      minVerticalPadding: 10,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
+                      leading: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0x0A000000),
+                        ),
+                        child: ClipOval(
+                          child: Image.network(
+                            user.pfpURL!,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        user.username!,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Row(
+                        children: [
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.3,
+                            child: Text(
+                              lastMessage,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Color(0xFFBDBDBD),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            dateTime.toString(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFFBDBDBD),
+                            ),
+                          ),
+                        ],
+                      ),
+                      trailing: Text(
+                        dateTime.toString(),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFBDBDBD),
+                        ),
+                      ),
+                      onTap: () async {
+                        final chatExists = await _databaseService
+                            .checkChatExists(_authService.user!.uid, user.uid!);
+                        if (!chatExists) {
+                          await _databaseService.createNewChat(
+                              _authService.user!.uid, user.uid!);
+                        }
+                        _navigationService.push(
+                          MaterialPageRoute(
+                            builder: (context) => MessageScreen(
+                              chatUser: user,
+                              currentUser: _databaseService.userModel,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               );
             }).toList(),
           ),

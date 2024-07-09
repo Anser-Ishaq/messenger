@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import 'package:messanger_ui/firebase_options.dart';
 import 'package:messanger_ui/services/alert_service.dart';
 import 'package:messanger_ui/services/auth_service.dart';
@@ -43,4 +45,19 @@ String generateChatID({required String uid1, required String uid2}) {
   uids.sort();
   String chatID = uids.fold("", (id, uid) => "$id$uid");
   return chatID;
+}
+
+String formatDateTime(Timestamp dateTime) {
+  final now = DateTime.now();
+  final messageDate = dateTime.toDate();
+
+  final isSameDay = now.year == messageDate.year &&
+      now.month == messageDate.month &&
+      now.day == messageDate.day;
+
+  if (isSameDay) {
+    return DateFormat('hh:mm a').format(messageDate);
+  } else {
+    return DateFormat('EEE, MMM d').format(messageDate);
+  }
 }
