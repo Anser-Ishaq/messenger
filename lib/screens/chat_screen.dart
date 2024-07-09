@@ -239,15 +239,22 @@ class _ChatScreenState extends State<ChatScreen> {
                       title: Text("Loading..."),
                     );
                   }
+                  String lastMessage = '';
+                  String dateTime = '';
                   if (!chatSnapshot.hasData || !chatSnapshot.data!.exists) {
-                    return const ListTile(
-                      title: Text("No chat data found."),
-                    );
+                    lastMessage = '';
+                    dateTime = '';
+                  } else {
+                    Chat chatData = chatSnapshot.data!.data()!;
+                    if (chatData.messages!.isEmpty) {
+                      lastMessage = '';
+                      dateTime = '';
+                    } else {
+                      lastMessage = chatData.messages!.last.content!;
+                      dateTime =
+                          formatDateTime(chatData.messages!.last.sentAt!);
+                    }
                   }
-                  Chat chatData = chatSnapshot.data!.data()!;
-                  String lastMessage = chatData.messages!.last.content!;
-                  String dateTime =
-                      formatDateTime(chatData.messages!.last.sentAt!);
                   return Slidable(
                     key: Key(user.uid!),
                     endActionPane: ActionPane(
@@ -348,9 +355,11 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                       subtitle: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.3,
+                            width: MediaQuery.of(context).size.width * 0.4,
                             child: Text(
                               lastMessage,
                               maxLines: 1,
@@ -361,7 +370,6 @@ class _ChatScreenState extends State<ChatScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 5),
                           Text(
                             dateTime.toString(),
                             style: const TextStyle(
@@ -370,13 +378,6 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                           ),
                         ],
-                      ),
-                      trailing: Text(
-                        dateTime.toString(),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFFBDBDBD),
-                        ),
                       ),
                       onTap: () async {
                         final chatExists = await _databaseService
