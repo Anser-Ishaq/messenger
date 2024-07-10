@@ -14,6 +14,7 @@ class DiscoverScreen extends StatefulWidget {
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
+  final TextEditingController _searchController = TextEditingController();
   final GetIt _getIt = GetIt.instance;
   bool buttonFocused = true;
 
@@ -43,7 +44,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               screenText: 'Discover',
               containIcons: false,
             ),
-            const Searchbox(),
+            Searchbox(searchController: _searchController,),
             _navigationTile(),
             if (buttonFocused) _recentSection(),
             if (buttonFocused) _moreSection(),

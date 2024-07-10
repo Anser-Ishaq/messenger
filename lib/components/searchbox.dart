@@ -1,14 +1,14 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 
-class Searchbox extends StatefulWidget {
-  const Searchbox({super.key});
+class Searchbox extends StatelessWidget {
+  const Searchbox({
+    super.key,
+    required this.searchController,
+  });
 
-  @override
-  State<Searchbox> createState() => _SearchboxState();
-}
+  final TextEditingController searchController;
 
-class _SearchboxState extends State<Searchbox> {
-  final TextEditingController _searchController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -18,7 +18,7 @@ class _SearchboxState extends State<Searchbox> {
         left: 4.0,
         right: 4.0,
         top: 4,
-        bottom: 8,
+        bottom: 4,
       ),
       child: Container(
         height: 25,
@@ -45,7 +45,7 @@ class _SearchboxState extends State<Searchbox> {
               child: TextField(
                 expands: true,
                 maxLines: null,
-                controller: _searchController,
+                controller: searchController,
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Search',

@@ -14,6 +14,7 @@ class PeopleScreen extends StatefulWidget {
 }
 
 class _PeopleScreenState extends State<PeopleScreen> {
+  final TextEditingController _searchController = TextEditingController();
   final GetIt _getIt = GetIt.instance;
   bool _showRecentlyActive = false;
 
@@ -56,7 +57,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
           icon1: Icons.chat_bubble,
           icon2: Icons.person_add,
         ),
-        const Searchbox(),
+        Searchbox(searchController: _searchController,),
         _storyBox(),
         _activePeople(activePeopleHeight),
         _recentlyActivePeopleText(),

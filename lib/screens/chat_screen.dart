@@ -25,6 +25,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final TextEditingController _searchController = TextEditingController();
   final GetIt _getIt = GetIt.instance;
 
   late AuthService _authService;
@@ -72,7 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
             icon1: Icons.camera_alt_rounded,
             icon2: Icons.edit_square,
           ),
-          const Searchbox(),
+          Searchbox(searchController: _searchController,),
           _storyAndOnlineBox(),
           Expanded(
             child: SingleChildScrollView(

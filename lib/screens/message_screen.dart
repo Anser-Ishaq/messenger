@@ -77,18 +77,18 @@ class _MessageScreenState extends State<MessageScreen> {
       _messageController.clear();
 
       Map<String, dynamic> request = {
-      "prompt": {
-        "messages": [
-          {
-            "content": messageText,
-          }
-        ]
-      },
-      "temperature": 0.25,
-      "candidateCount": 1,
-      "topP": 1,
-      "topK": 1
-    };
+        "prompt": {
+          "messages": [
+            {
+              "content": messageText,
+            }
+          ]
+        },
+        "temperature": 0.25,
+        "candidateCount": 1,
+        "topP": 1,
+        "topK": 1
+      };
 
       final response = await http.post(chatAIuri, body: jsonEncode(request));
 
@@ -424,6 +424,7 @@ class _MessageScreenState extends State<MessageScreen> {
           ),
           child: Text(
             message.content!,
+            softWrap: true,
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w400,
