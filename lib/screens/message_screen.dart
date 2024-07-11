@@ -557,7 +557,7 @@ class _MessageScreenState extends State<MessageScreen> {
       onPressed:
           widget.chatUser.uid == chatAIAPIKey ? _sendAIMessage : _sendMessage,
       icon: const Icon(
-        Icons.thumb_up_off_alt_rounded,
+        Icons.send_rounded,
         color: Color(0xFF0584FE),
       ),
     );

@@ -15,10 +15,12 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _usernameController =
+      TextEditingController(text: null);
   final GetIt _getIt = GetIt.instance;
 
   File? _selectedImage;
+  bool isLoading = false;
 
   late DatabaseService _databaseService;
   late MediaService _mediaService;
@@ -30,18 +32,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _databaseService = _getIt.get<DatabaseService>();
     _mediaService = _getIt.get<MediaService>();
     _updateprofileService = _getIt.get<UpdateprofileService>();
+    _usernameController.text = _databaseService.userModel.username!;
   }
 
-  Future<void> _saveProfile() async {
+  void _saveProfile() async {
+    setState(() {
+      isLoading = true;
+    });
     // Implement save profile logic here using the updated username and profile image
     String newUsername = _usernameController.text;
     File? newPfp = _selectedImage;
-
-    // Call the updateProfile method
-    _updateprofileService.updateProfile(
-      newUsername: newUsername,
-      newPfp: newPfp,
-    );
+    bool result = false;
+    if (_selectedImage != null && _usernameController.text.isEmpty || _usernameController.text == '') {
+      result = await _updateprofileService.updateProfile(
+        newUsername: null,
+        newPfp: newPfp,
+      );
+    } else if (_selectedImage == null && _usernameController.text.isNotEmpty) {
+      result = await _updateprofileService.updateProfile(
+        newUsername: newUsername,
+        newPfp: null,
+      );
+    } else {
+      result = await _updateprofileService.updateProfile(
+        newUsername: newUsername,
+        newPfp: newPfp,
+      );
+    }
+    setState(() {
+      if (result) {
+        isLoading = false;
+      }
+    });
   }
 
   @override
@@ -53,21 +75,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         forceMaterialTransparency: true,
       ),
       body: SafeArea(
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _profileImageWidget(),
-                const SizedBox(height: 20),
-                _usernameField(),
-                const SizedBox(height: 20),
-                _actionButtons(),
-              ],
-            ),
-          ),
-        ),
+        child: isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: Colors.grey[350],
+                  strokeWidth: 3,
+                ),
+              )
+            : _buildUI(),
       ),
     );
   }
@@ -92,6 +107,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         SizedBox(width: 35),
       ],
+    );
+  }
+
+  Widget _buildUI() {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            _profileImageWidget(),
+            const SizedBox(height: 20),
+            _usernameField(),
+            const SizedBox(height: 20),
+            _actionButtons(),
+          ],
+        ),
+      ),
     );
   }
 

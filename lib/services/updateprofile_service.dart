@@ -17,7 +17,7 @@ class UpdateprofileService {
     _authService = _getIt.get<AuthService>();
   }
 
-  Future<void> updateProfile({
+  Future<bool> updateProfile({
     String? newUsername,
     File? newPfp,
   }) async {
@@ -37,6 +37,7 @@ class UpdateprofileService {
       newUsername: newUsername,
       newPfpURL: newPfpURL,
     );
+    return true;
   }
 
 }
