@@ -4,7 +4,7 @@ import 'package:messanger_ui/components/header.dart';
 import 'package:messanger_ui/components/searchbox.dart';
 import 'package:messanger_ui/services/database_service.dart';
 import 'package:messanger_ui/users.dart';
-import 'package:messanger_ui/model/usermodel.dart';
+import 'package:messanger_ui/models/usermodel.dart';
 
 class PeopleScreen extends StatefulWidget {
   const PeopleScreen({super.key});

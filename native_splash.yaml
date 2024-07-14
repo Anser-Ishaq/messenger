@@ -1,0 +1,14 @@
+flutter_native_splash:
+
+  android: true
+  ios: true
+  web: false
+
+  color: "#64B5F6"
+  color_dark: "#64B5F6"
+
+  image: "assets/icons/messenger_icon.png"
+
+  android_12:
+    color: "#64B5F6"
+    image: "assets/icons/messenger_icon.png"

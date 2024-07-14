@@ -5,9 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:messanger_ui/constans/const.dart';
-import 'package:messanger_ui/model/chat.dart';
-import 'package:messanger_ui/model/message.dart';
-import 'package:messanger_ui/model/usermodel.dart';
+import 'package:messanger_ui/models/chat.dart';
+import 'package:messanger_ui/models/message.dart';
+import 'package:messanger_ui/models/usermodel.dart';
 import 'package:messanger_ui/screens/chatuserprofile_screen.dart';
 import 'package:messanger_ui/services/database_service.dart';
 import 'package:messanger_ui/services/navigation_service.dart';
@@ -17,7 +17,7 @@ import 'package:http/http.dart' as http;
 
 class MessageScreen extends StatefulWidget {
   const MessageScreen(
-      {super.key, required this.chatUser, required this.currentUser});
+      {super.key, required this.chatUser, required this.currentUser,});
 
   final UserModel chatUser;
   final UserModel currentUser;
@@ -351,24 +351,30 @@ class _MessageScreenState extends State<MessageScreen> {
           );
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: SizedBox());
+          return SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.width * 0.8,
+          );
         }
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Center(
-            child: Text("No messages found."),
+          return SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.width * 0.8,
           );
         }
 
         dynamic data = snapshot.data!.data();
         if (data == null) {
-          return const Center(
-            child: Text("No data available."),
+          return SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.width * 0.8,
           );
         }
         Chat chat = data;
         if (chat.messages == null) {
-          return const Center(
-            child: Text("No messages found."),
+          return SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.width * 0.8,
           );
         }
         List<Message> messages = _generateChatMessagesList(chat.messages!);

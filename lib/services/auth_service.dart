@@ -103,7 +103,6 @@ class AuthService {
 
   Future<bool> changePassword(String oldPassword, String newPassword) async {
     try {
-      // User user = _firebaseAuth.currentUser!;
       User user = _user!;
       AuthCredential credential = EmailAuthProvider.credential(
         email: user.email!,

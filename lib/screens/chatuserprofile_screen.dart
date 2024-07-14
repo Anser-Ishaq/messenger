@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:messanger_ui/model/usermodel.dart';
+import 'package:messanger_ui/models/usermodel.dart';
 import 'package:messanger_ui/widgets/custom_back_button.dart';
 import 'package:messanger_ui/widgets/custom_divider.dart';
 import 'package:messanger_ui/widgets/custom_icon_buttom.dart';

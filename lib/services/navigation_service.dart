@@ -6,12 +6,14 @@ import 'package:messanger_ui/screens/editprofile_screen.dart';
 import 'package:messanger_ui/screens/forgotpassword_screen.dart';
 import 'package:messanger_ui/screens/login_screen.dart';
 import 'package:messanger_ui/screens/register_screen.dart';
+import 'package:messanger_ui/screens/splash_screen.dart';
 
 class NavigationService {
 
   late GlobalKey<NavigatorState> _navigatorKey;
 
   final Map<String, Widget Function(BuildContext)> _routes = {
+    Routes.splash : (context) => const SplashScreen(),
     Routes.login : (context) => const LoginScreen(),
     Routes.register : (context) => const RegisterScreen(),
     Routes.home : (context) => const DashboardScreen(),

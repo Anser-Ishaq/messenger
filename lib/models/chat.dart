@@ -1,4 +1,4 @@
-import 'package:messanger_ui/model/message.dart';
+import 'package:messanger_ui/models/message.dart';
 
 class Chat {
   String? id;

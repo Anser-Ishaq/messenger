@@ -48,4 +48,15 @@ class MediaService {
     }
     return null;
   }
+
+  Future<File?> getVideoFromGallery() async {
+    final XFile? file = await _picker.pickVideo(
+      source: ImageSource.gallery,
+      maxDuration: const Duration(seconds: 30),
+    );
+    if (file != null) {
+      return File(file.path);
+    }
+    return null;
+  }
 }

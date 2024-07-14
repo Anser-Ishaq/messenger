@@ -53,6 +53,8 @@ dependencies:
   delightful_toast: ^1.1.0
   http: ^1.2.1
   intl: ^0.19.0
+  story_view: ^0.16.5
+  status_view: ^0.0.2
 
 dev_dependencies:
   flutter_test:

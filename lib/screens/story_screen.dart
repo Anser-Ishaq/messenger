@@ -1,57 +1,37 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'package:messanger_ui/models/story.dart';
+import 'package:story_view/story_view.dart';
 
 class StoryScreen extends StatefulWidget {
-  const StoryScreen({super.key, required this.videoFile});
-
-  final File videoFile;
+  final List<Story> stories;
+  const StoryScreen({
+    required this.stories,
+    super.key,
+  });
 
   @override
   State<StoryScreen> createState() => _StoryScreenState();
 }
 
 class _StoryScreenState extends State<StoryScreen> {
-  late VideoPlayerController _videoPlayerController;
-  bool _isVideoLoading = true;
+  final StoryController _storyController = StoryController();
 
   @override
   void initState() {
     super.initState();
-    _initializeVideoPlayer();
   }
 
-  Future<void> _initializeVideoPlayer() async {
-    try {
-      _videoPlayerController = VideoPlayerController.file(widget.videoFile);
-
-      await _videoPlayerController.initialize();
-      setState(() {
-        _isVideoLoading = false;
-        _videoPlayerController.play();
-      });
-
-      _videoPlayerController.addListener(() {
-        if (_videoPlayerController.value.position >=
-            _videoPlayerController.value.duration) {
-          Navigator.pop(context);
-        }
-      });
-    } catch (error) {
-      if (kDebugMode) {
-        print("Error initializing video: $error");
-      }
-      setState(() {
-        _isVideoLoading = false;
-      });
-    }
-  }
+  // void _markStoriesAsPlayed() {
+  //   for (var story in widget.stories) {
+  //     // Update the story's `isPlayed` status in Firestore or wherever it's stored
+  //     // For example, using your DatabaseService:
+  //     // _databaseService.markStoryAsPlayed(story.sid);
+  //   }
+  // }
 
   @override
   void dispose() {
-    _videoPlayerController.dispose();
+    _storyController.dispose();
     super.dispose();
   }
 
@@ -60,52 +40,33 @@ class _StoryScreenState extends State<StoryScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => Column(
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20.0),
-                      child: _isVideoLoading
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                            )
-                          : _videoPlayerController.value.isInitialized
-                              ? AspectRatio(
-                                  aspectRatio: constraints.maxWidth /
-                                      constraints.maxHeight,
-                                  child: VideoPlayer(_videoPlayerController),
-                                )
-                              : const SizedBox(),
-                    ),
-                  ),
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    right: 10,
-                    child: VideoProgressIndicator(
-                      _videoPlayerController,
-                      allowScrubbing: true,
-                      colors: const VideoProgressColors(
-                        playedColor: Colors.white,
-                        bufferedColor: Colors.transparent,
-                        // backgroundColor: Colors.black,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        child: StoryView(
+          storyItems: widget.stories.map((story) {
+            return StoryItem.pageVideo(
+              story.storyURL!,
+              controller: _storyController,
+              caption: story.caption != null
+                  ? Text(
+                      story.caption!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  : null,
+              duration: const Duration(seconds: 10),
+            );
+          }).toList(),
+          controller: _storyController,
+          onComplete: () {
+            Navigator.pop(context);
+          },
+          onStoryShow: (storyItem, index) {},
+          onVerticalSwipeComplete: (details) {
+            if (details == Direction.down) {
+              Navigator.of(context).pop();
+            }
+          },
+          indicatorColor: Colors.grey[400],
+          indicatorForegroundColor: Colors.white70, // const Color(0xFF0584FE),
         ),
       ),
     );

@@ -2,27 +2,27 @@ class UserModel {
   String? uid;
   String? username;
   String? pfpURL;
-  String? videoPath;
+  String? email;
+  List<String>? stories;
   List<String>? friends;
-  bool? played;
 
   UserModel({
     this.uid,
     this.username,
     this.pfpURL,
-    this.videoPath,
-    this.played,
-    List<String>? friends,
-  }) : friends = friends ?? [];
+    this.email,
+    this.stories,
+    this.friends,
+  });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       uid: json['uid'],
       username: json['username'],
       pfpURL: json['pfpURL'],
+      email: json['email'],
       friends: (json['friends'] as List<dynamic>?)?.map((item) => item as String).toList() ?? [],
-      videoPath: json['videoPath'],
-      played: json['played'] ?? false,
+      stories: (json['stories'] as List<dynamic>?)?.map((story) => story as String).toList() ?? [],
     );
   }
 
@@ -31,9 +31,9 @@ class UserModel {
     data['uid'] = uid;
     data['username'] = username;
     data['pfpURL'] = pfpURL;
+    data['email'] = email;
     data['friends'] = friends;
-    data['videoPath'] = videoPath;
-    data['played'] = played;
+    data['stories'] = stories;
     return data;
   }
 }

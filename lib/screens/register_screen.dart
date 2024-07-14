@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:messanger_ui/model/usermodel.dart';
+import 'package:messanger_ui/models/usermodel.dart';
 import 'package:messanger_ui/services/alert_service.dart';
 import 'package:messanger_ui/services/auth_service.dart';
 import 'package:messanger_ui/services/database_service.dart';
