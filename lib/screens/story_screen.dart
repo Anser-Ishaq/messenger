@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:messanger_ui/models/story.dart';
+import 'package:get_it/get_it.dart';
+import 'package:messanger_ui/services/database_service.dart';
 import 'package:story_view/story_view.dart';
+
+import 'package:messanger_ui/models/story.dart';
+import 'package:messanger_ui/models/usermodel.dart';
 
 class StoryScreen extends StatefulWidget {
   final List<Story> stories;
+  final UserModel currentUser;
   const StoryScreen({
-    required this.stories,
     super.key,
+    required this.stories,
+    required this.currentUser,
   });
 
   @override
@@ -14,20 +20,16 @@ class StoryScreen extends StatefulWidget {
 }
 
 class _StoryScreenState extends State<StoryScreen> {
+  final GetIt _getIt = GetIt.instance;
   final StoryController _storyController = StoryController();
+
+  late DatabaseService _databaseService;
 
   @override
   void initState() {
     super.initState();
+    _databaseService = _getIt.get<DatabaseService>();
   }
-
-  // void _markStoriesAsPlayed() {
-  //   for (var story in widget.stories) {
-  //     // Update the story's `isPlayed` status in Firestore or wherever it's stored
-  //     // For example, using your DatabaseService:
-  //     // _databaseService.markStoryAsPlayed(story.sid);
-  //   }
-  // }
 
   @override
   void dispose() {
@@ -59,7 +61,9 @@ class _StoryScreenState extends State<StoryScreen> {
           onComplete: () {
             Navigator.pop(context);
           },
-          onStoryShow: (storyItem, index) {},
+          onStoryShow: (storyItem, index) async {
+            await _databaseService.updateStoryDoc(sid: widget.stories[index].sid!, uid: widget.currentUser.uid!);
+          },
           onVerticalSwipeComplete: (details) {
             if (details == Direction.down) {
               Navigator.of(context).pop();

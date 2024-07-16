@@ -39,6 +39,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void>? _userController;
 
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +54,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void addStory() async {
     File? videoFile = await _mediaService.getVideoFromGallery();
+    setState(() {
+      isLoading = true;
+    });
     if (videoFile != null) {
       // Upload the video file to Firebase Storage
       String? storyURL = await _storageService.uploadStory(
@@ -62,14 +67,16 @@ class _ChatScreenState extends State<ChatScreen> {
         // Update the videoPath field of the user with the download URL
         final docId = _databaseService.createNewStoryDoc();
         await _databaseService.setStoryDoc(
-            story: Story(
-          sid: docId,
-          userId: _authService.user!.uid,
-          storyURL: storyURL,
-          storyType: StoryType.pageVideo,
-          caption: 'New Story',
-          sentAt: Timestamp.now(),
-        ));
+          story: Story(
+            sid: docId,
+            userId: _authService.user!.uid,
+            storyURL: storyURL,
+            storyType: StoryType.video,
+            caption: 'New Story',
+            sentAt: Timestamp.now(),
+            viewers: [],
+          ),
+        );
         await _databaseService.updateUserProfile(
           uid: _authService.user!.uid,
           newSid: docId,
@@ -77,27 +84,49 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       setState(() {
         _databaseService.getCurrentUser();
+        isLoading = false;
       });
     }
+  }
+
+  Future<int> _indexOfSeenStatus(UserModel user) async {
+    int index = 0;
+
+    List<Story> stories = await _databaseService.getStories(user: user);
+    for (Story story in stories) {
+      if (story.viewers != null &&
+          story.viewers!.contains(_authService.user!.uid)) {
+        index++;
+      }
+    }
+
+    return index;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder(
-        future: _userController,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text("Unable to load data."),
-            );
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: SizedBox());
-          }
-          return _buildUI();
-        },
-      ),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF0584FE),
+                strokeWidth: 3,
+              ),
+            )
+          : FutureBuilder(
+              future: _userController,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text("Unable to load data."),
+                  );
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: SizedBox());
+                }
+                return _buildUI();
+              },
+            ),
     );
   }
 
@@ -116,19 +145,19 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           Expanded(
             child: StreamBuilder(
-              stream: _databaseService.getFriendUsers(),
+              stream: _databaseService.getUserFriends(),
               builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text("Unable to load data."),
-                  );
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: SizedBox());
-                }
+                // if (snapshot.hasError) {
+                //   return const Center(
+                //     child: Text("Unable to load data."),
+                //   );
+                // }
+                // // if (snapshot.connectionState == ConnectionState.waiting) {
+                // //   return const Center(child: SizedBox());
+                // // }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(
-                    child: Text("No friends found."),
+                    child: SizedBox(),
                   );
                 }
                 final users = snapshot.data!.docs;
@@ -176,149 +205,176 @@ class _ChatScreenState extends State<ChatScreen> {
     bool isStory = _databaseService.userModel.stories == null
         ? false
         : _databaseService.userModel.stories!.isNotEmpty;
-    return Padding(
-      padding: const EdgeInsets.only(left: 4.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Stack(
+    return FutureBuilder<int>(
+      future: _indexOfSeenStatus(_databaseService.userModel),
+      builder: (context, snapshot) {
+        int seenIndex = 0;
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          seenIndex = snapshot.data!;
+        }
+        return Padding(
+          padding: const EdgeInsets.only(left: 4.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: 55,
-                height: 55,
-                margin: const EdgeInsets.all(9.0),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0x0A000000),
-                ),
-                child: isStory
-                    ? GestureDetector(
-                        onTap: () async {
-                          List<Story> stories =
-                              await _databaseService.getUserStories();
-                          _navigationService.push(
-                            MaterialPageRoute(
-                              builder: (context) => StoryScreen(
-                                stories: stories,
+              Stack(
+                children: [
+                  Container(
+                    width: 55,
+                    height: 55,
+                    margin: const EdgeInsets.all(9.0),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0x0A000000),
+                    ),
+                    child: isStory
+                        ? GestureDetector(
+                            onTap: () async {
+                              List<Story> stories = await _databaseService
+                                  .getStories(user: _databaseService.userModel);
+                              _navigationService.push(
+                                MaterialPageRoute(
+                                  builder: (context) => StoryScreen(
+                                    stories: stories,
+                                    currentUser: _databaseService.userModel,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: StatusView(
+                              centerImageUrl:
+                                  _databaseService.userModel.pfpURL!,
+                              numberOfStatus:
+                                  _databaseService.userModel.stories!.length,
+                              radius: 30.5,
+                              indexOfSeenStatus: seenIndex,
+                              spacing: 8,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : IconButton(
+                            onPressed: addStory,
+                            icon: const Center(
+                              child: Icon(
+                                Icons.add,
+                                size: 25.5,
                               ),
                             ),
-                          );
-                        },
-                        child: StatusView(
-                          centerImageUrl: _databaseService.userModel.pfpURL!,
-                          numberOfStatus:
-                              _databaseService.userModel.stories!.length,
-                          radius: 30.5,
-                          indexOfSeenStatus: 0,
-                          spacing: 8,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : IconButton(
-                        onPressed: addStory,
-                        icon: const Center(
-                          child: Icon(
-                            Icons.add,
-                            size: 25.5,
                           ),
-                        ),
-                      ),
-              ),
-              isStory
-                  ? Positioned(
-                      bottom: 9,
-                      right: 12,
-                      child: GestureDetector(
-                        onTap: addStory,
-                        child: Container(
-                          padding: const EdgeInsets.all(1),
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1,
+                  ),
+                  isStory
+                      ? Positioned(
+                          bottom: 9,
+                          right: 12,
+                          child: GestureDetector(
+                            onTap: addStory,
+                            child: Container(
+                              padding: const EdgeInsets.all(1),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 1,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                size: 10,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                          child: const Icon(
-                            Icons.add,
-                            size: 10,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
+                        )
+                      : const SizedBox.shrink(),
+                ],
+              ),
+              const Text(
+                'Your story',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
             ],
           ),
-          const Text(
-            'Your story',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _friendStoryBox(users) {
-    return Row(
-      children: users.map<Widget>(
-        (userDoc) {
-          UserModel user = userDoc.data();
-          return user.stories!.isNotEmpty
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 55,
-                      height: 55,
-                      margin: const EdgeInsets.all(9.0),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                      ),
-                      child: GestureDetector(
-                        onTap: () async {
-                          List<Story> stories =
-                              await _databaseService.getFriendsStories();
-                          _navigationService.push(
-                            MaterialPageRoute(
-                              builder: (context) => StoryScreen(
-                                stories: stories,
+  Widget _friendStoryBox(List<QueryDocumentSnapshot<UserModel>> users) {
+    return ListView.builder(
+      shrinkWrap: true,
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: users.length,
+      itemBuilder: (context, index) {
+        UserModel user = users[index].data();
+        return FutureBuilder<int>(
+          future: _indexOfSeenStatus(user),
+          builder: (context, snapshot) {
+            int seenIndex = 0;
+            if (snapshot.connectionState == ConnectionState.done &&
+                snapshot.hasData) {
+              seenIndex = snapshot.data!;
+            }
+            return user.stories!.isNotEmpty
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 55,
+                        height: 55,
+                        margin: const EdgeInsets.all(9.0),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        child: GestureDetector(
+                          onTap: () async {
+                            List<Story> stories =
+                                await _databaseService.getStories(user: user);
+                            _navigationService.push(
+                              MaterialPageRoute(
+                                builder: (context) => StoryScreen(
+                                  stories: stories,
+                                  currentUser: _databaseService.userModel,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                        child: StatusView(
-                          centerImageUrl: user.pfpURL!,
-                          numberOfStatus: user.stories!.length,
-                          radius: 30.5,
-                          indexOfSeenStatus: 0,
-                          spacing: 8,
-                          strokeWidth: 2,
+                            );
+                          },
+                          child: StatusView(
+                            centerImageUrl: user.pfpURL!,
+                            numberOfStatus: user.stories!.length,
+                            radius: 30.5,
+                            indexOfSeenStatus: seenIndex,
+                            spacing: 8,
+                            strokeWidth: 2,
+                            seenColor: Colors.grey,
+                            unSeenColor: Colors.blue,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 50,
-                      child: Text(
-                        user.username!,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                      SizedBox(
+                        width: 50,
+                        child: Text(
+                          user.username!,
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                )
-              : const SizedBox.shrink();
-        },
-      ).toList(),
+                    ],
+                  )
+                : const SizedBox.shrink();
+          },
+        );
+      },
     );
   }
 

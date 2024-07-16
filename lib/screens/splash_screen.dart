@@ -33,9 +33,9 @@ class _SplashScreenState extends State<SplashScreen> {
     
     final result = await _databaseService.getCurrentUser();
     // await Future.delayed(const Duration(seconds: 3));
-    List<Story> stories = await _databaseService.getUserStories();
+    List<Story> stories = await _databaseService.getStories(user: _databaseService.userModel);
     for (var story in stories) {
-      await _databaseService.deleteStory(story.sid!);
+      await _databaseService.deleteStory(sid: story.sid!);
     }
     if (result) {
       _navigationService.pushReplacementNamed(

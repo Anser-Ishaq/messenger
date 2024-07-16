@@ -21,7 +21,7 @@ class UserModel {
       username: json['username'],
       pfpURL: json['pfpURL'],
       email: json['email'],
-      friends: (json['friends'] as List<dynamic>?)?.map((item) => item as String).toList() ?? [],
+      friends: (json['friends'] as List<dynamic>?)?.map((friend) => friend as String).toList() ?? [],
       stories: (json['stories'] as List<dynamic>?)?.map((story) => story as String).toList() ?? [],
     );
   }

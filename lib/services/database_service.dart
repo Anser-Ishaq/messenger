@@ -77,7 +77,7 @@ class DatabaseService {
     await _userCollection?.doc(uid).update(data);
   }
 
-  Stream<QuerySnapshot<UserModel>> getFriendUsers() {
+  Stream<QuerySnapshot<UserModel>> getUserFriends() {
     if (_userModel.friends == null || _userModel.friends!.isEmpty) {
       return const Stream.empty();
     }
@@ -136,14 +136,26 @@ class DatabaseService {
     }
   }
 
-  Future<List<Story>> getUserStories() async {
+  Future<void> updateStoryDoc({required String sid, required String uid}) async {
+  try {
+    await _storyCollection!.doc(sid).update({
+      'viewers': FieldValue.arrayUnion([uid])
+    });
+  } catch (e) {
+    if (kDebugMode) print('Error updating story document: $e');
+    rethrow;
+  }
+}
+
+
+  Future<List<Story>> getStories({required UserModel user}) async {
     try {
-      if (_userModel.stories == null || _userModel.stories!.isEmpty) {
+      if (user.stories == null || user.stories!.isEmpty) {
         return [];
       }
 
       QuerySnapshot<Story> querySnapshot = await _storyCollection
-          ?.where('sid', whereIn: _userModel.stories)
+          ?.where('sid', whereIn: user.stories)
           .get() as QuerySnapshot<Story>;
 
       List<Story> stories =
@@ -151,14 +163,15 @@ class DatabaseService {
 
       return stories;
     } catch (e) {
-      if (kDebugMode) print('Error fetching user stories: $e');
+      if (kDebugMode) print('Error fetching stories: $e');
       return [];
     }
   }
 
-  Future<void> deleteStory(String sid) async {
+  Future<void> deleteStory({required String sid}) async {
     try {
-      DocumentSnapshot<Story>? storySnapshot = await _storyCollection!.doc(sid).get() as DocumentSnapshot<Story>?;
+      DocumentSnapshot<Story>? storySnapshot =
+          await _storyCollection!.doc(sid).get() as DocumentSnapshot<Story>?;
 
       if (storySnapshot!.exists) {
         Story story = storySnapshot.data()!;
@@ -200,25 +213,5 @@ class DatabaseService {
       rethrow;
     }
   }
-
-  Future<List<Story>> getFriendsStories() async {
-  try {
-    if (_userModel.friends == null || _userModel.friends!.isEmpty) {
-      return []; 
-    }
-
-    QuerySnapshot<Story> querySnapshot = await _storyCollection
-        ?.where('userId', whereIn: _userModel.friends)
-        .get() as QuerySnapshot<Story>;
-
-    List<Story> stories =
-        querySnapshot.docs.map((doc) => doc.data()).toList();
-
-    return stories;
-  } catch (e) {
-    if (kDebugMode) print('Error fetching friend stories: $e');
-    return [];
-  }
-}
 
 }

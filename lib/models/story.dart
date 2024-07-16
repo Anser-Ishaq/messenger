@@ -1,14 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum StoryType { text, inlineImage, inlineVideo, pageImage, pageVideo }
+enum StoryType { text, image, video }
 
 class Story {
-  String? sid;
-  String? userId;
-  String? storyURL;
-  StoryType? storyType;
-  Timestamp? sentAt;
-  String? caption;
+  final String? sid;
+  final String? userId;
+  final String? storyURL;
+  final StoryType? storyType;
+  final Timestamp? sentAt;
+  final String? caption;
+  final List<String>? viewers;
 
   Story({
     this.sid,
@@ -17,6 +18,7 @@ class Story {
     this.storyType,
     this.sentAt,
     this.caption,
+    this.viewers,
   });
 
   factory Story.fromJson(Map<String, dynamic> json) {
@@ -27,6 +29,7 @@ class Story {
       storyType: StoryType.values.byName(json['storyType']),
       sentAt: json['sentAt'],
       caption: json['caption'],
+      viewers: (json['viewers'] as List<dynamic>?)?.map((viewer) => viewer as String).toList() ?? [],
     );
   }
 
@@ -38,6 +41,7 @@ class Story {
     data['storyType'] = storyType!.name;
     data['sentAt'] = sentAt;
     data['caption'] = caption;
+    data['viewers'] = viewers;
     return data;
   }
 }
