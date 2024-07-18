@@ -6,9 +6,12 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:messanger_ui/components/header.dart';
 import 'package:messanger_ui/components/searchbox.dart';
+import 'package:messanger_ui/constans/routes.dart';
 import 'package:messanger_ui/models/chat.dart';
+import 'package:messanger_ui/models/groupmodel.dart';
 import 'package:messanger_ui/models/story.dart';
 import 'package:messanger_ui/models/usermodel.dart';
+import 'package:messanger_ui/screens/groupmessage_screen.dart';
 import 'package:messanger_ui/screens/message_screen.dart';
 import 'package:messanger_ui/screens/story_screen.dart';
 import 'package:messanger_ui/services/auth_service.dart';
@@ -133,34 +136,39 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildUI() {
     return SafeArea(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Header(
             pfp: _databaseService.userModel.pfpURL!,
             screenText: 'Chats',
+            containIcons: true,
             icon1: Icons.camera_alt_rounded,
             icon2: Icons.edit_square,
+            onPressedIcon1: () {},
+            onPressedIcon2: () {
+              _navigationService.pushNamed(Routes.createGroup);
+            },
           ),
           Searchbox(
             searchController: _searchController,
           ),
           Expanded(
             child: StreamBuilder(
-              stream: _databaseService.getUserFriends(),
+              stream: _databaseService.getMergedStream(),
               builder: (context, snapshot) {
                 // if (snapshot.hasError) {
                 //   return const Center(
                 //     child: Text("Unable to load data."),
                 //   );
                 // }
-                // // if (snapshot.connectionState == ConnectionState.waiting) {
-                // //   return const Center(child: SizedBox());
-                // // }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(
-                    child: SizedBox(),
-                  );
+                // if (snapshot.connectionState == ConnectionState.waiting) {
+                //   return const Center(child: SizedBox());
+                // }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return _storyBox();
                 }
-                final users = snapshot.data!.docs;
+                final users = snapshot.data!['friends']!;
+                final groups = snapshot.data!['groups']!;
                 return Column(
                   children: [
                     _storyAndFriendStoryBox(users),
@@ -168,7 +176,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            _chatsBox(users),
+                            _chatsBox(users, groups),
                           ],
                         ),
                       ),
@@ -378,166 +386,52 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _chatsBox(users) {
+  Widget _chatsBox(users, groups) {
     return SlidableAutoCloseBehavior(
       closeWhenTapped: true,
       closeWhenOpened: true,
       child: Column(
-        children: users.map<Widget>((userDoc) {
-          UserModel user = userDoc.data();
-          return StreamBuilder(
-            stream:
-                _databaseService.getChatData(user.uid!, _authService.user!.uid),
-            builder: (context, chatSnapshot) {
-              if (chatSnapshot.hasError) {
-                return const Center(
-                  child: Text("Unable to load chat data."),
-                );
-              }
-              if (chatSnapshot.connectionState == ConnectionState.waiting) {
-                return const ListTile(
-                  title: Text("Loading..."),
-                );
-              }
-              String lastMessage = '';
-              String dateTime = '';
-              if (!chatSnapshot.hasData || !chatSnapshot.data!.exists) {
-                lastMessage = '';
-                dateTime = '';
-              } else {
-                Chat chatData = chatSnapshot.data!.data()!;
-                if (chatData.messages!.isEmpty) {
+        children: [
+          ...users.map<Widget>((userDoc) {
+            UserModel user = userDoc.data();
+            return StreamBuilder(
+              stream: _databaseService.getChatData(
+                  user.uid!, _authService.user!.uid),
+              builder: (context, chatSnapshot) {
+                if (chatSnapshot.hasError) {
+                  return const Center(
+                    child: Text("Unable to load chat data."),
+                  );
+                }
+                if (chatSnapshot.connectionState == ConnectionState.waiting) {
+                  return const ListTile(
+                    title: Text("Loading..."),
+                  );
+                }
+                String lastMessage = '';
+                String dateTime = '';
+                if (!chatSnapshot.hasData || !chatSnapshot.data!.exists) {
                   lastMessage = '';
                   dateTime = '';
                 } else {
-                  lastMessage = chatData.messages!.last.content!;
-                  dateTime = formatDateTime(chatData.messages!.last.sentAt!);
+                  Chat chatData = chatSnapshot.data!.data()!;
+                  if (chatData.messages!.isEmpty) {
+                    lastMessage = '';
+                    dateTime = '';
+                  } else {
+                    lastMessage = chatData.messages!.last.content!;
+                    dateTime = formatDateTime(chatData.messages!.last.sentAt!);
+                  }
                 }
-              }
-              return Slidable(
-                key: Key(user.uid!),
-                endActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  children: [
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.menu_rounded),
-                      ),
-                    ),
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.notifications),
-                      ),
-                    ),
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        color: Colors.red,
-                        child: Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                startActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  children: [
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.camera_alt_rounded),
-                      ),
-                    ),
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.phone_rounded),
-                      ),
-                    ),
-                    CustomSlidableAction(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: (context) {},
-                      child: const CustomContainer(
-                        leftM: 0,
-                        rightM: 0,
-                        child: Icon(Icons.videocam_rounded),
-                      ),
-                    ),
-                  ],
-                ),
-                child: ListTile(
-                  dense: false,
-                  minLeadingWidth: 60,
-                  minVerticalPadding: 10,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 10,
-                    horizontal: 12,
+                return _buildSlidable(
+                  key: user.uid!,
+                  leading: Image.network(
+                    user.pfpURL!,
+                    fit: BoxFit.cover,
                   ),
-                  leading: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0x0A000000),
-                    ),
-                    child: ClipOval(
-                      child: Image.network(
-                        user.pfpURL!,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    user.username!,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.4,
-                        child: Text(
-                          lastMessage,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFFBDBDBD),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        dateTime.toString(),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFFBDBDBD),
-                        ),
-                      ),
-                    ],
-                  ),
+                  title: user.username!,
+                  lastMessage: lastMessage,
+                  dateTime: dateTime,
                   onTap: () async {
                     final chatExists = await _databaseService.checkChatExists(
                         _authService.user!.uid, user.uid!);
@@ -554,11 +448,200 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     );
                   },
+                );
+              },
+            );
+          }).toList(),
+          ...groups.map<Widget>((groupDoc) {
+            Group group = groupDoc.data();
+            return StreamBuilder(
+              stream: _databaseService.getGroupData(group.gid!),
+              builder: (context, groupSnapshot) {
+                if (groupSnapshot.hasError) {
+                  return const Center(
+                    child: Text("Unable to load group data."),
+                  );
+                }
+                if (groupSnapshot.connectionState == ConnectionState.waiting) {
+                  return const ListTile(
+                    title: Text("Loading..."),
+                  );
+                }
+                String lastMessage = '';
+                String dateTime = '';
+                if (!groupSnapshot.hasData || !groupSnapshot.data!.exists) {
+                  lastMessage = '';
+                  dateTime = '';
+                } else {
+                  Group groupData = groupSnapshot.data!.data()!;
+                  if (groupData.messages!.isEmpty) {
+                    lastMessage = '';
+                    dateTime = '';
+                  } else {
+                    lastMessage = groupData.messages!.last.content!;
+                    dateTime = formatDateTime(groupData.messages!.last.sentAt!);
+                  }
+                }
+                return _buildSlidable(
+                  key: group.gid!,
+                  leading: Image.network(
+                    group.pfpURL!,
+                    fit: BoxFit.cover,
+                  ),
+                  title: group.groupName!,
+                  lastMessage: lastMessage,
+                  dateTime: dateTime,
+                  onTap: () {
+                    _navigationService.push(
+                      MaterialPageRoute(
+                        builder: (context) => GroupMessageScreen(
+                          group: group,
+                          currentUser: _databaseService.userModel,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlidable({
+    required String key,
+    required Widget leading,
+    required String title,
+    required String lastMessage,
+    required String dateTime,
+    required VoidCallback onTap,
+  }) {
+    return Slidable(
+      key: Key(key),
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          CustomSlidableAction(
+            padding: const EdgeInsets.all(0),
+            onPressed: (context) {},
+            child: const CustomContainer(
+              leftM: 0,
+              rightM: 0,
+              child: Icon(Icons.menu_rounded),
+            ),
+          ),
+          CustomSlidableAction(
+            padding: const EdgeInsets.all(0),
+            onPressed: (context) {},
+            child: const CustomContainer(
+              leftM: 0,
+              rightM: 0,
+              child: Icon(Icons.notifications),
+            ),
+          ),
+          CustomSlidableAction(
+            padding: const EdgeInsets.all(0),
+            onPressed: (context) {},
+            child: const CustomContainer(
+              leftM: 0,
+              rightM: 0,
+              color: Colors.red,
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+      startActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          CustomSlidableAction(
+            padding: const EdgeInsets.all(0),
+            onPressed: (context) {},
+            child: const CustomContainer(
+              leftM: 0,
+              rightM: 0,
+              child: Icon(Icons.camera_alt_rounded),
+            ),
+          ),
+          CustomSlidableAction(
+            padding: const EdgeInsets.all(0),
+            onPressed: (context) {},
+            child: const CustomContainer(
+              leftM: 0,
+              rightM: 0,
+              child: Icon(Icons.phone_rounded),
+            ),
+          ),
+          CustomSlidableAction(
+            padding: const EdgeInsets.all(0),
+            onPressed: (context) {},
+            child: const CustomContainer(
+              leftM: 0,
+              rightM: 0,
+              child: Icon(Icons.videocam_rounded),
+            ),
+          ),
+        ],
+      ),
+      child: ListTile(
+        dense: false,
+        minLeadingWidth: 60,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 3,
+          horizontal: 12,
+        ),
+        leading: Container(
+          width: 60,
+          height: 60,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Color(0x0A000000),
+          ),
+          child: Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: leading,
+            ),
+          ),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.4,
+              child: Text(
+                lastMessage,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Color(0xFFBDBDBD),
                 ),
-              );
-            },
-          );
-        }).toList(),
+              ),
+            ),
+            Text(
+              dateTime,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFFBDBDBD),
+              ),
+            ),
+          ],
+        ),
+        onTap: onTap,
       ),
     );
   }

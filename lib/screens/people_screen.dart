@@ -37,12 +37,16 @@ class _PeopleScreenState extends State<PeopleScreen> {
     return SafeArea(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-          final activePeopleHeight = constraints.maxHeight * (isPortrait ? 0.585 : 0.4);
+          final isPortrait =
+              MediaQuery.of(context).orientation == Orientation.portrait;
+          final activePeopleHeight =
+              constraints.maxHeight * (isPortrait ? 0.585 : 0.4);
 
-          return !isPortrait ? SingleChildScrollView(
-            child: _screenContent(activePeopleHeight),
-          ) : _screenContent(activePeopleHeight);
+          return !isPortrait
+              ? SingleChildScrollView(
+                  child: _screenContent(activePeopleHeight),
+                )
+              : _screenContent(activePeopleHeight);
         },
       ),
     );
@@ -54,10 +58,15 @@ class _PeopleScreenState extends State<PeopleScreen> {
         Header(
           pfp: _databaseService.userModel.pfpURL!,
           screenText: 'People',
+          containIcons: true,
           icon1: Icons.chat_bubble,
           icon2: Icons.person_add,
+          onPressedIcon1: () {},
+          onPressedIcon2: () {},
         ),
-        Searchbox(searchController: _searchController,),
+        Searchbox(
+          searchController: _searchController,
+        ),
         _storyBox(),
         _activePeople(activePeopleHeight),
         _recentlyActivePeopleText(),
@@ -221,13 +230,15 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       Container(
                         width: 32,
                         height: 32,
-                        margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 14),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 14),
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           color: Color(0x0A000000),
                         ),
                         child: Center(
                           child: IconButton(
+                            padding: const EdgeInsets.all(0),
                             onPressed: () {},
                             icon: const Icon(
                               Icons.waving_hand_rounded,

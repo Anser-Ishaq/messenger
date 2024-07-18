@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:messanger_ui/constans/routes.dart';
 import 'package:messanger_ui/screens/changepassword_screen.dart';
+import 'package:messanger_ui/screens/creategroup_screen.dart';
 import 'package:messanger_ui/screens/dashboard_screen.dart';
 import 'package:messanger_ui/screens/editprofile_screen.dart';
 import 'package:messanger_ui/screens/forgotpassword_screen.dart';
@@ -20,6 +21,7 @@ class NavigationService {
     Routes.forgotPassword : (context) => const ForgotPasswordScreen(),
     Routes.changePassword : (context) => const ChangePasswordScreen(),
     Routes.editProfile: (context) => const EditProfileScreen(),
+    Routes.createGroup: (context) => const CreateGroupScreen(),
   };
 
   GlobalKey<NavigatorState>? get navigatorKey => _navigatorKey;

@@ -68,4 +68,34 @@ class StorageService {
       return null;
     }
   }
+
+  Future<String?> uploadGroupPfp({
+    required File file,
+    required String groupId,
+  }) async {
+    try {
+      Reference fileRef = _firebaseStorage
+          .ref('groups/pfps')
+          .child('$groupId${p.extension(file.path)}');
+      UploadTask task = fileRef.putFile(file);
+      return await task.then((snapshot) async {
+        if (snapshot.state == TaskState.success) {
+          return await fileRef.getDownloadURL();
+        }
+        return null;
+      });
+    } catch (e) {
+      if (kDebugMode) print("Error uploading group profile picture: $e");
+      return null;
+    }
+  }
+
+  Future<void> deleteGroupPfp(String pfpURL) async {
+    try {
+      Reference photoRef = _firebaseStorage.refFromURL(pfpURL);
+      await photoRef.delete();
+    } catch (e) {
+      if (kDebugMode) print("Error deleting group profile picture: $e");
+    }
+  }
 }

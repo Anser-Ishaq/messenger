@@ -26,20 +26,22 @@ class _SplashScreenState extends State<SplashScreen> {
     _authService = _getIt.get<AuthService>();
     _databaseService = _getIt.get<DatabaseService>();
     _navigationService = _getIt.get<NavigationService>();
-    navigate();
+    Future.delayed(const Duration(seconds: 3), navigate);
   }
 
   Future<void> navigate() async {
-    
-    final result = await _databaseService.getCurrentUser();
-    // await Future.delayed(const Duration(seconds: 3));
-    List<Story> stories = await _databaseService.getStories(user: _databaseService.userModel);
-    for (var story in stories) {
-      await _databaseService.deleteStory(sid: story.sid!);
-    }
-    if (result) {
-      _navigationService.pushReplacementNamed(
-          _authService.user != null ? Routes.home : Routes.login);
+    if (_authService.user != null) {
+      final result = await _databaseService.getCurrentUser();
+      List<Story> stories =
+          await _databaseService.getStories(user: _databaseService.userModel);
+      for (var story in stories) {
+        await _databaseService.deleteStory(sid: story.sid!);
+      }
+      if (result) {
+        _navigationService.pushReplacementNamed(Routes.home);
+      }
+    } else {
+      _navigationService.pushReplacementNamed(Routes.login);
     }
   }
 

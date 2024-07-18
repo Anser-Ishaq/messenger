@@ -145,6 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           uid: _authService.user!.uid,
                           username: name,
                           pfpURL: pfpUrl,
+                          email: email,
                         ),
                       );
                       _alertService.showToast(

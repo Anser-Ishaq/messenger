@@ -2,11 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:messanger_ui/models/chat.dart';
+import 'package:messanger_ui/models/groupmodel.dart';
 import 'package:messanger_ui/models/message.dart';
 import 'package:messanger_ui/models/story.dart';
 import 'package:messanger_ui/models/usermodel.dart';
 import 'package:messanger_ui/services/auth_service.dart';
 import 'package:messanger_ui/utils.dart';
+import 'package:rxdart/rxdart.dart';
 
 class DatabaseService {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
@@ -15,6 +17,7 @@ class DatabaseService {
   CollectionReference? _userCollection;
   CollectionReference? _chatCollection;
   CollectionReference? _storyCollection;
+  CollectionReference? _groupCollection;
 
   late AuthService _authService;
 
@@ -44,6 +47,11 @@ class DatabaseService {
               fromFirestore: (snapshot, _) => Story.fromJson(snapshot.data()!),
               toFirestore: (story, _) => story.toJson(),
             );
+    _groupCollection =
+        _firebaseFirestore.collection('groups').withConverter<Group>(
+              fromFirestore: (snapshot, _) => Group.fromJson(snapshot.data()!),
+              toFirestore: (group, _) => group.toJson(),
+            );
   }
 
   Future<void> createUserModel({required UserModel userModel}) async {
@@ -68,11 +76,13 @@ class DatabaseService {
     String? newUsername,
     String? newPfpURL,
     String? newSid,
+    String? newGid,
   }) async {
     Map<String, dynamic> data = {};
     if (newUsername != null) data['username'] = newUsername;
     if (newPfpURL != null) data['pfpURL'] = newPfpURL;
     if (newSid != null) data['stories'] = FieldValue.arrayUnion([newSid]);
+    if (newGid != null) data['groups'] = FieldValue.arrayUnion([newGid]);
 
     await _userCollection?.doc(uid).update(data);
   }
@@ -136,17 +146,17 @@ class DatabaseService {
     }
   }
 
-  Future<void> updateStoryDoc({required String sid, required String uid}) async {
-  try {
-    await _storyCollection!.doc(sid).update({
-      'viewers': FieldValue.arrayUnion([uid])
-    });
-  } catch (e) {
-    if (kDebugMode) print('Error updating story document: $e');
-    rethrow;
+  Future<void> updateStoryDoc(
+      {required String sid, required String uid}) async {
+    try {
+      await _storyCollection!.doc(sid).update({
+        'viewers': FieldValue.arrayUnion([uid])
+      });
+    } catch (e) {
+      if (kDebugMode) print('Error updating story document: $e');
+      rethrow;
+    }
   }
-}
-
 
   Future<List<Story>> getStories({required UserModel user}) async {
     try {
@@ -214,4 +224,64 @@ class DatabaseService {
     }
   }
 
+  Future<bool> checkGroupExists(String gid) async {
+    final result = await _groupCollection?.doc(gid).get();
+    if (result != null) {
+      return result.exists;
+    }
+    return false;
+  }
+
+  String generateUniqueGroupId() {
+    final docRef = _groupCollection!.doc();
+    return docRef.id;
+  }
+
+  Future<void> setGroupDoc({required Group group}) async {
+    try {
+      await _groupCollection?.doc(group.gid).set(group);
+    } catch (e) {
+      if (kDebugMode) print('Error setting story document: $e');
+      rethrow;
+    }
+  }
+
+  Stream<QuerySnapshot<Group>> getUserGroups() {
+    if (_userModel.groups == null || _userModel.groups!.isEmpty) {
+      return const Stream.empty();
+    }
+    return _groupCollection
+        ?.where('gid', whereIn: _userModel.groups)
+        .snapshots() as Stream<QuerySnapshot<Group>>;
+  }
+
+  Future<void> sendGroupMessage(String gid, Message message) async {
+    final docRef = _groupCollection!.doc(gid);
+    await docRef.update({
+      'messages': FieldValue.arrayUnion([message.toJson()])
+    });
+  }
+
+  Stream<DocumentSnapshot<Group>> getGroupData(String gid) {
+    return _groupCollection!.doc(gid).snapshots()
+        as Stream<DocumentSnapshot<Group>>;
+  }
+
+  Stream<Map<String, List<QueryDocumentSnapshot<dynamic>>>> getMergedStream() {
+  Stream<QuerySnapshot<UserModel>> friends = getUserFriends();
+  Stream<QuerySnapshot<Group>> groups = getUserGroups();
+
+  Stream<Map<String, List<QueryDocumentSnapshot<dynamic>>>> mergedStream = Rx.zip2(
+    friends,
+    groups,
+    (QuerySnapshot<UserModel> friendsSnapshot, QuerySnapshot<Group> groupsSnapshot) {
+      return {
+        'friends': friendsSnapshot.docs,
+        'groups': groupsSnapshot.docs,
+      };
+    },
+  );
+
+  return mergedStream;
+}
 }

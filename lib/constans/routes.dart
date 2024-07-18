@@ -7,4 +7,5 @@ class Routes {
   static const String resetPassword = '/reset-password';
   static const String changePassword = '/change-password';
   static const String editProfile = '/edit-profile';
+  static const String createGroup = '/create-group';
 }

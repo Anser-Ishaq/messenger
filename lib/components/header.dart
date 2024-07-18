@@ -9,12 +9,16 @@ class Header extends StatefulWidget {
     this.icon1,
     this.icon2,
     this.containIcons = true,
+    this.onPressedIcon1,
+    this.onPressedIcon2,
   });
   final String pfp;
   final String screenText;
   final IconData? icon1;
   final IconData? icon2;
   final bool containIcons;
+  final VoidCallback? onPressedIcon1;
+  final VoidCallback? onPressedIcon2;
 
   @override
   State<Header> createState() => _HeaderState();
@@ -58,7 +62,7 @@ class _HeaderState extends State<Header> {
               ? CustomContainer(
                   rightM: 6,
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: widget.onPressedIcon1,
                     icon: Icon(
                       widget.icon1,
                     ),
@@ -69,7 +73,7 @@ class _HeaderState extends State<Header> {
               ? CustomContainer(
                   leftM: 6,
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: widget.onPressedIcon2,
                     icon: Icon(
                       widget.icon2,
                     ),
