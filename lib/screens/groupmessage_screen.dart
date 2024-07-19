@@ -8,7 +8,7 @@ import 'package:messanger_ui/models/groupmodel.dart';
 import 'package:messanger_ui/models/message.dart';
 import 'package:messanger_ui/models/usermodel.dart';
 import 'package:messanger_ui/services/database_service.dart';
-import 'package:messanger_ui/services/navigation_service.dart';
+// import 'package:messanger_ui/services/navigation_service.dart';
 import 'package:messanger_ui/widgets/custom_back_button.dart';
 
 class GroupMessageScreen extends StatefulWidget {
@@ -29,13 +29,13 @@ class _GroupMessageScreenState extends State<GroupMessageScreen> {
   final _focusNode = FocusNode();
 
   late DatabaseService _databaseService;
-  late NavigationService _navigationService;
+  // late NavigationService _navigationService;
 
   @override
   void initState() {
     super.initState();
     _databaseService = _getIt.get<DatabaseService>();
-    _navigationService = _getIt.get<NavigationService>();
+    // _navigationService = _getIt.get<NavigationService>();
     _refreshGroupDataStream();
   }
 
