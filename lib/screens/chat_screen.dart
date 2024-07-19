@@ -6,6 +6,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:messanger_ui/components/header.dart';
 import 'package:messanger_ui/components/searchbox.dart';
+import 'package:messanger_ui/constans/const.dart';
 import 'package:messanger_ui/constans/routes.dart';
 import 'package:messanger_ui/models/chat.dart';
 import 'package:messanger_ui/models/groupmodel.dart';
@@ -104,6 +105,16 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return index;
+  }
+
+  List<QueryDocumentSnapshot<UserModel>> moveValueToZeroIndex(List<QueryDocumentSnapshot<UserModel>> users) {
+    for (var user in users) {
+      if (user['uid'] == chatAIuid) {
+        users.remove(user);
+        users.insert(0, user);
+      }
+    }
+    return users;
   }
 
   @override
@@ -314,6 +325,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _friendStoryBox(List<QueryDocumentSnapshot<UserModel>> users) {
+    users = moveValueToZeroIndex(users);
     return ListView.builder(
       shrinkWrap: true,
       scrollDirection: Axis.horizontal,

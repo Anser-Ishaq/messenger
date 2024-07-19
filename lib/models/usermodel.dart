@@ -1,3 +1,5 @@
+import 'package:messanger_ui/constans/const.dart';
+
 class UserModel {
   String? uid;
   String? username;
@@ -13,7 +15,7 @@ class UserModel {
     this.pfpURL,
     this.email,
     this.stories,
-    this.friends,
+    this.friends = const [chatAIuid],
     this.groups,
   });
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:messanger_ui/constans/app_colors.dart';
 import 'package:messanger_ui/constans/routes.dart';
@@ -6,6 +7,7 @@ import 'package:messanger_ui/services/navigation_service.dart';
 import 'package:messanger_ui/utils.dart';
 
 void main() async {
+  await dotenv.load(fileName: ".env");
   await setup();
   runApp(MyApp());
 }

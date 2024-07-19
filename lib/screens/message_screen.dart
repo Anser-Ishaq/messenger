@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:messanger_ui/components/messagebar.dart';
 import 'package:messanger_ui/constans/const.dart';
@@ -94,7 +95,7 @@ class _MessageScreenState extends State<MessageScreen> {
         "topK": 1
       };
 
-      final response = await http.post(chatAIuri, body: jsonEncode(request));
+      final response = await http.post(Uri.parse(dotenv.env['AI_URL']!), body: jsonEncode(request));
 
       final message1 = Message(
         senderID: widget.chatUser.uid!,
@@ -158,7 +159,7 @@ class _MessageScreenState extends State<MessageScreen> {
                     _focusNode.unfocus();
                   });
                 },
-                sendButtonOnPressed: widget.chatUser.uid == chatAIAPIKey
+                sendButtonOnPressed: widget.chatUser.uid == chatAIuid
                     ? _sendAIMessage
                     : _sendMessage,
               )),

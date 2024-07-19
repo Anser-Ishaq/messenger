@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -49,21 +50,32 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAu-irZlQwTaZ24eiOVHph5o6RxgnTvLjk',
-    appId: '1:1084566191832:android:b0a10d6591cad287b061ad',
-    messagingSenderId: '1084566191832',
-    projectId: 'messanger-ui',
-    storageBucket: 'messanger-ui.appspot.com',
+  static FirebaseOptions android = FirebaseOptions(
+    // apiKey: 'AIzaSyAu-irZlQwTaZ24eiOVHph5o6RxgnTvLjk',
+    apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY']!,
+    // appId: '1:1084566191832:android:b0a10d6591cad287b061ad',
+    appId: dotenv.env['FIREBASE_ANDROID_APP_ID']!,
+    // messagingSenderId: '1084566191832',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+    // projectId: 'messanger-ui',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+    // storageBucket: 'messanger-ui.appspot.com',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAzrv_yVxXbA1bug01NuhrT3MSSnXUOZGQ',
-    appId: '1:1084566191832:ios:e856f0db733e3c37b061ad',
-    messagingSenderId: '1084566191832',
-    projectId: 'messanger-ui',
-    storageBucket: 'messanger-ui.appspot.com',
-    iosBundleId: 'com.example.messangerUi',
+  static FirebaseOptions ios = FirebaseOptions(
+    // apiKey: 'AIzaSyAzrv_yVxXbA1bug01NuhrT3MSSnXUOZGQ',
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY']!,
+    // appId: '1:1084566191832:ios:e856f0db733e3c37b061ad',
+    appId: dotenv.env['FIREBASE_IOS_APP_ID']!,
+    // messagingSenderId: '1084566191832',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+    // projectId: 'messanger-ui',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+    // storageBucket: 'messanger-ui.appspot.com',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
+    // iosBundleId: 'com.example.messangerUi',
+    iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID']!,
   );
 
 }
